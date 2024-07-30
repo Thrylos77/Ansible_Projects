@@ -6,10 +6,9 @@ global_config:
   timezone: 'GMT'
   date_format: "yyyy/MM/dd"
   language: "french"
-  motd: "Unauthorized access is prohibited"
 
 interface_wan:
-    name: 'port1'
+  - name: 'port1'
     alias: 'WAN'
     wan_ip: '192.168.1.200/24'
     wan_gw: 192.168.1.254

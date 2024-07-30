@@ -13,11 +13,9 @@ vlan_configs:
     allowaccess: ['ping', 'https', 'ssh']
   - id: 40
     ip: 10.10.40.1/24
-    allowaccess:
-      'ping'
-      'https'
-      'ssh'
-      'http'
+    allowaccess: ['ping', 'https', 'ssh', 'http']
+
+vlan_vdom: 'root'
 
 dhcp_servers:
   - vlan: 10
@@ -25,27 +23,32 @@ dhcp_servers:
     end_ip: 10.10.10.199
     netmask: 255.255.255.0
     gateway: 10.10.10.1
+    lease_time: 18000
 
   - vlan: 20
     start_ip: 10.10.20.20
     end_ip: 10.10.20.230
     netmask: 255.255.255.0
     gateway: 10.10.20.1
+    lease_time: 86400
 
   - vlan: 30
     start_ip: 10.10.30.20
     end_ip: 10.10.30.230
     netmask: 255.255.255.0
     gateway: 10.10.30.1
+    lease_time: 86400
 
   - vlan: 40
     start_ip: 10.10.40.101
     end_ip: 10.10.40.230
     netmask: 255.255.255.0
     gateway: 10.10.40.1
+    lease_time: 18000
 
 static_routes:
   - destination: '0.0.0.0/0'
-    gateway: 192.168.1.254'
+    gateway: 192.168.1.254
     interface: 'port1'
     comment: 'Connexion vers Internet'
+    seq_num: 0

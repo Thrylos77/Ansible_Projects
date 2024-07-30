@@ -22,12 +22,14 @@
     vdom: '{{ vdom }}'
     state: present
     system_interface:
-      name: VLAN.'{{ item.id }}'
-      vlan_id: "{{ item.id }}"
+      name: VLAN.{{ item.id }}
+      vlanid: "{{ item.id }}"
+      alias: VLAN.{{item.id}}
       type: 'vlan'
       interface: "{{ interface_lan.name }}"
       ip: "{{ item.ip }}"
       allowaccess: '{{ item.allowaccess }}'
+      vdom: '{{ vlan_vdom }}'
   loop: "{{ vlan_configs }}"
 
 - name: Configure FortiGate DHCP
@@ -35,7 +37,7 @@
     vdom: '{{ vdom }}'
     state: present
     system_dhcp_server:
-      interface: VLAN."{{ item.vlan }}"
+      interface: VLAN.{{ item.vlan }}
       auto_configuration: 'disable'
       auto_managed_status: 'disable'
       status: 'enable'
@@ -47,12 +49,13 @@
       netmask: "{{ item.netmask }}"
       default_gateway: "{{ item.gateway }}"
       ip_mode: 'range'
+      id: '{{ item.vlan }}'
       ip_range:
-        start_ip: "{{ item.start_ip }}"
-        end_ip: "{{ item.end_ip }}"
-        id: '{{ item.vlan }}'
-      lease_time: '604800'
-    loop: "{{ dhcp_configs }}"
+        - start_ip: "{{ item.start_ip }}"
+          end_ip: "{{ item.end_ip }}"
+          id: '{{ item.vlan }}'
+          lease_time: '{{ item.lease_time }}'
+  loop: "{{ dhcp_servers }}"
 
 - name: Configure FortiGate WAN interface
   fortinet.fortios.fortios_system_interface:
@@ -63,7 +66,7 @@
       alias: '{{ item.alias }}'
       ip: '{{ item.wan_ip }}'
       allowaccess: '{{ item.allowaccess }}'
-    loop: '{{ interface_wan }}'
+  loop: '{{ interface_wan }}'
 
 - name: Configure FortiGate LAN interface
   fortinet.fortios.fortios_system_interface:
@@ -71,16 +74,17 @@
     state: present
     system_interface:
       name: '{{ interface_lan.name }}'
-      alias: '{{ interfac_lan.alias }}'
+      alias: '{{ interface_lan.alias }}'
 
 - name: Configure FortiGate static route
   fortinet.fortios.fortios_router_static:
     vdom: '{{ vdom }}'
     state: present
     router_static:
-      - dst: "{{ item.destination }}"
-        gateway: "{{ item.gateway }}"
-        device: "{{ item.interface }}"
-        comment: '{{ item.comment }}'
-        status: 'enable'
-    loop: "{{ static_routes }}"
+      seq_num: '{{ item.seq_num }}'
+      dst: "{{ item.destination }}"
+      gateway: "{{ item.gateway }}"
+      device: "{{ item.interface }}"
+      comment: '{{ item.comment }}'
+      status: 'enable'
+  loop: "{{ static_routes }}"
