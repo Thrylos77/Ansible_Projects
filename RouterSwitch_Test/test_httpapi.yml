@@ -1,0 +1,13 @@
+---
+- name: Test HTTPAPI communication with FortiGate
+  hosts: fortigates
+  gather_facts: yes
+
+  tasks:
+  - name: Configure global attibutes.
+    fortinet.fortios.fortios_system_global:
+      vdom: 'root'
+      system_global:
+        hostname: 'FortiG-Firewall'
+        admin_sport: '4443'
+

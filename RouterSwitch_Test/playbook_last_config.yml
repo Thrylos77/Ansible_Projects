@@ -1,0 +1,23 @@
+- name: Last config for Cisco switches
+  gather_facts: yes
+  hosts: cisco_switches
+  become: yes
+  become_method: enable
+  vars_files:
+    - './inventory/host_vars/.vault_pwd/{{ inventory_hostname }}.yml'
+  vars:
+    ansible_become_password: '{{ enable_password }}'
+
+  tasks:
+    - name: Configure switchport mode trunk
+      loop: '{{ mode_trunk }}'
+      ios_config:
+        lines:
+          - interface {{ item.name }}
+          - switchport mode trunk
+          - switchport trunk native vlan 99
+          - no switchport trunk allowed vlan 1
+
+    - name: Save running config to startup config
+      ios_command:
+        commands: write memory

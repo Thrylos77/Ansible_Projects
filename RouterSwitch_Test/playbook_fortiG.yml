@@ -1,0 +1,8 @@
+- name: Configure Firewall
+  gather_facts: yes
+  hosts: fortiG
+  vars_files:
+    - './inventory/host_vars/.vault_pwd/fortiG.yml'
+
+  roles:
+    - FortiGate

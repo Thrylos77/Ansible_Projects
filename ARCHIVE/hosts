@@ -1,0 +1,20 @@
+#[local]
+localhost ansible_connection=local
+
+[db_server]
+10.10.2.14 ansible_user=dkj
+
+[main_server]
+#10.10.2.9 ansible_user=debserv
+debian-server.telmas.tg ansible_user=debserv
+
+[dhcp_server]
+10.10.2.9 ansible_user=debserv
+
+[switchs]
+switch1 ansible_host=10.10.2.2 ansible_user=switch1
+switch2 ansible_host=10.10.2.3 ansible_user=switch2
+[switchs:vars]
+ansible_network_os=ios
+ansible_password=switch1
+ansible_connection=network_cli

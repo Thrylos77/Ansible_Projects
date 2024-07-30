@@ -1,0 +1,3 @@
+# handlers file for pfSense
+- name: Restart pfSense
+  command: /etc/rc.restart_webgui

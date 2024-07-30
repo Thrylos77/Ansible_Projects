@@ -1,0 +1,17 @@
+- name: Cisco show version example
+  hosts: cisco_switches
+  gather_facts: false
+  vars_files:
+    - './inventory/host_vars/.vault_pwd/{{ inventory_hostname }}.yml'
+  vars:
+    ansible_become_password: '{{ enable_password }}'
+
+  tasks:
+  - name: run show version on the switchs
+    cisco.ios.ios_command:
+      commands: show version | include Cisco
+    register: output
+
+  - name: print output
+    debug:
+      var: output.stdout_lines

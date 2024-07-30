@@ -1,0 +1,135 @@
+---
+
+# WEB SERVER
+- hosts: web_server
+  become: true
+  vars_files: vars/main.yml
+
+  tasks:
+  - name: install apache and php last version
+    apt:
+      name:
+        - apache2
+        - php
+        - php-mysql
+      state: present
+      update_cache: yes
+
+  - name: Give writable mode to http folder
+    file:
+      path: /var/www/html
+      state: directory
+      mode: '0755'
+
+  - name: remove default index.html
+    file:
+      path: /var/www/html/index.html
+      state: absent
+
+  - name: upload web app source
+    copy:
+      src: app/
+      dest: /var/www/html/
+
+  - name: deploy php database config
+    template:
+      src: "db-config.php.j2"
+      dest: "/var/www/html/db-config.php"
+
+  - name: ensure apache service is start
+    service:
+      name: apache2
+      state: started
+      enabled: yes
+
+
+# DATABASE SERVER
+
+- hosts: db_server
+  become: true
+  vars_files: vars/main.yml
+  vars:
+    root_password: "my_secret_password"
+
+  tasks:
+  - name: Install Mariadb
+    dnf:
+      name:
+        - mariadb-server
+      state: present
+      update_cache: yes
+
+  - name: Start and enable MariaDB service
+    systemd:
+      name: mariadb
+      state: started
+      enabled: yes
+
+  - name: Allow external MySQL connections (1/2)
+    lineinfile:
+      path: /etc/my.cnf.d/mariadb-server.cnf
+      regexp: '^skip-networking'
+      line: "# skip-networking"
+      state: present
+    notify: Restart MariaDB
+
+  - name: Allow external MySQL connections (2/2)
+    lineinfile:
+      path: /etc/my.cnf.d/mariadb-server.cnf
+      regexp: '^bind-address'
+      line: "bind-address = 0.0.0.0"
+      state: present
+    notify: Restart MariaDB
+
+  - name: Secure MariaDB installation
+    expect:
+      command: mysql_secure_installation
+      responses:
+        "Enter current password for root (enter for none):": ""
+        "Switch to unix_socket authentication [Y/n]": "n"
+        "Change the root password? [Y/n]": "n"
+        "Remove anonymous users? [Y/n]": "y"
+        "Disallow root login remotely? [Y/n]": "y"
+        "Remove test database and access to it? [Y/n]": "y"
+        "Reload privilege tables now? [Y/n]": "y"
+
+  - name: Create MySQL client config
+    copy:
+      dest: "/root/.my.cnf"
+      content: |
+        [client]
+        user=root
+        password={{ root_password }}
+      mode: 0400
+
+  - name: upload sql table config
+    template:
+      src: "table.sql.j2"
+      dest: "/tmp/table.sql"
+
+  - name: add sql table to database
+    mysql_db:
+      name: "{{ mysql_dbname }}"
+      state: present
+      login_user: root
+      login_password: '{{ root_password }}'
+      state: import
+      target: /tmp/table.sql
+
+  - name: "Create {{ mysql_user }} with all {{ mysql_dbname }} privileges"
+    mysql_user:
+      name: "{{ mysql_user }}"
+      password: "{{ mysql_password }}"
+      priv: "{{ mysql_dbname }}.*:ALL"
+      host: "{{ webserver_host }}"
+      state: present
+      login_user: root
+      login_password: '{{ root_password }}'
+      login_unix_socket: /var/lib/mysql/mysql.sock # for debian/var/run/mysqld/mysqld.sock
+
+  handlers:
+    - name: Restart MariaDB
+      service:
+        name: mariadb
+        state: restarted
+

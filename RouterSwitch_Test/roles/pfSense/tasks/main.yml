@@ -1,0 +1,45 @@
+# tasks file for pfSense
+
+- name: Configure VLANs
+  loop: "{{ vlans }}"
+  pfsensible.core.pfsense_vlan:
+    interface: "{{ item.interface }}"
+    vlan_id: "{{ item.vlan_id }}"
+    descr: "{{ item.descr }}"
+    state: present
+
+- name: Configure Interfaces
+  loop: '{{ vlans }}'
+  pfsensible.core.pfsense_interface:
+    descr: "{{ interfaces.descr }}{{ item.vlan_id }}"
+    interface: '{{ interfaces.name }}.{{ item.vlan_id }}'
+    enable: "{{ interfaces.enable }}"
+    ipv4_type: "{{ interfaces.ipv4_type }}"
+    ipv4_address: "{{ item.ipv4_address }}"
+    ipv4_prefixlen: "{{ interfaces.ipv4_prefixlen }}"
+    state: present
+
+- name: Configure Firewall Rules
+  loop: "{{ rules }}"
+  pfsensible.core.pfsense_rule:
+    name: "{{ item.name }}"
+    interface: "{{ item.interface }}"
+    action: "{{ item.action }}"
+    protocol: "{{ item.protocol }}"
+    source: "{{ item.source }}"
+    destination: "{{ item.destination }}"
+    state: "{{ item.state }}"
+
+- name: Configure Gateways
+  loop: "{{ gateways }}"
+  pfsensible.core.pfsense_gateway:
+    name: "{{ item.name }}"
+    interface: "{{ item.interface }}"
+    gateway: "{{ item.gateway }}"
+    state: "{{ item.state }}"
+
+- name: Configure Default Gateway
+  pfsensible.core.pfsense_default_gateway:
+    gateway: "{{ default_gateway.gateway }}"
+    ipprotocol: "{{ default_gateway.ipprotocol }}"
+  notify: Restart pfSense

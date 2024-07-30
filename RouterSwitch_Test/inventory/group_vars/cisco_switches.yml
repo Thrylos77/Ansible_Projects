@@ -1,0 +1,12 @@
+ansible_network_os: ios
+ansible_connection: network_cli
+
+vlans:
+  - vlan_id: 10
+    name: Vlan Serveur
+  - vlan_id: 20
+    name: Vlan Administration
+  - vlan_id: 30
+    name: Vlan Employes
+  - vlan_id: 40
+    name: Vlan Management

@@ -1,0 +1,51 @@
+---
+# vars file for FortiGate
+
+vlan_configs:
+  - id: 10
+    ip: 10.10.10.1/24
+    allowaccess: ['ping', 'http', 'https', 'ssh']
+  - id: 20
+    ip: 10.10.20.1/24
+    allowaccess: ['ping', 'https', 'ssh']
+  - id: 30
+    ip: 10.10.30.1/24
+    allowaccess: ['ping', 'https', 'ssh']
+  - id: 40
+    ip: 10.10.40.1/24
+    allowaccess:
+      'ping'
+      'https'
+      'ssh'
+      'http'
+
+dhcp_servers:
+  - vlan: 10
+    start_ip: 10.10.10.100
+    end_ip: 10.10.10.199
+    netmask: 255.255.255.0
+    gateway: 10.10.10.1
+
+  - vlan: 20
+    start_ip: 10.10.20.20
+    end_ip: 10.10.20.230
+    netmask: 255.255.255.0
+    gateway: 10.10.20.1
+
+  - vlan: 30
+    start_ip: 10.10.30.20
+    end_ip: 10.10.30.230
+    netmask: 255.255.255.0
+    gateway: 10.10.30.1
+
+  - vlan: 40
+    start_ip: 10.10.40.101
+    end_ip: 10.10.40.230
+    netmask: 255.255.255.0
+    gateway: 10.10.40.1
+
+static_routes:
+  - destination: '0.0.0.0/0'
+    gateway: 192.168.1.254'
+    interface: 'port1'
+    comment: 'Connexion vers Internet'

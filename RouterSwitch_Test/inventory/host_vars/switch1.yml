@@ -1,0 +1,26 @@
+hostname: SW1
+
+mode_trunk:
+  - name: Eth0/0
+    description: Link to FortiG
+  - name: Eth0/1
+    description: Link to SW2
+  - name: Eth0/2
+    description: Link to SW3
+
+allow_vlan: 1,10,20,30,40
+
+interfaces:
+  - name: Eth1/0
+    description: This is a test by ANSIBLE
+    access_vlan: 1
+
+management_ip:
+  - vlan_id: 10
+    ip_address: 10.10.10.2 255.255.255.0
+  - vlan_id: 20
+    ip_address: 10.10.20.2 255.255.255.0
+  - vlan_id: 30
+    ip_address: 10.10.30.2 255.255.255.0
+  - vlan_id: 40
+    ip_address: 10.10.40.2 255.255.255.0

@@ -1,0 +1,66 @@
+---
+# tasks file for FortiGate
+
+- name: Configure global attributes on FortiGate
+  fortinet.fortios.fortios_system_global:
+    vdom: "{{ vdom }}"
+    system_global:
+      hostname: "{{ global_config.hostname }}"
+      admin_concurrent: 'enable'
+      timezone: "{{ global_config.timezone }}"
+      admintimeout: 120
+      gui_date_format: "{{ global_config.date_format }}"
+      language: "{{ global_config.language }}"
+      alias: 'FortiGate'
+      admin_ssh_port: 22
+      admin_https_redirect: "enable"
+      admin_lockout_duration: 30
+      admin_lockout_threshold: 3
+
+- name: Configure FortiGate VLANs
+  fortinet.fortios.fortios_system_interface:
+    vdom: '{{ vdom }}'
+    state: present
+    system_interface:
+      name: "{{ item.name }}"
+      vlan_id: "{{ item.id }}"
+        interface: "{{ lan_interface }}"
+        ip: "{{ item.ip }}"
+        allowaccess: ping
+    loop: "{{ vlan_configs }}"
+
+- name: Configure FortiGate DHCP
+  fortinet.fortios.fortios_system_dhcp_server:
+    vdom: '{{ vdom }}'
+    access_token: "{{ fortigate_api_token }}"
+    state: present
+    dhcp_server:
+      interface: "{{ lan_interface }}"
+      vlan_id: "{{ item.id }}"
+      netmask: "{{ item.netmask }}"
+      default_gateway: "{{ item.gateway }}"
+      ip_mode: 'range'
+      ip_range:
+        start_ip: "{{ item.start_ip }}"
+        end_ip: "{{ item.end_ip }}"
+    loop: "{{ dhcp_configs }}"
+
+- name: Configure FortiGate WAN interface
+  fortinet.fortios.fortios_system_interface:
+    vdom: '{{ vdom }}'
+    access_token: "{{ fortigate_api_token }}"
+    state: present
+    system_interface:
+      name: "{{ wan_interface }}"
+      ip: "{{ wan_ip }}"
+      allowaccess: ssh, http, https
+
+- name: Configure FortiGate static route
+  fortinet.fortios.fortios_router_static:
+    vdom: '{{ vdom }}'
+    access_token: "{{ fortigate_api_token }}"
+    state: present
+    router_static:
+      destination: 0.0.0.0/0
+      device: "{{ wan_interface }}"
+      gateway: "{{ wan_gw }}"

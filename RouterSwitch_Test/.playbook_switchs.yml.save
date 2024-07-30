@@ -1,0 +1,62 @@
+- name: Configure Cisco switches
+  gather_facts: no
+  hosts: cisco_switches
+  become: yes
+  become_method: enable
+  vars_files:
+    - './inventory/host_vars/.vault_pwd/{{ inventory_hostname }}.yml'
+  vars:
+    ansible_become_password: '{{ enable_password }}'
+
+  tasks:
+    - name: Configure basic settings
+      ios_config:
+        lines:
+          - hostname {{ hostname }}
+          - line console 0
+          - password {{ con0_password }}
+          - logging synchronous
+          - exit
+          - service password-encryption
+          - no ip domain-lookup
+
+    - name: Configure VLANs
+      loop: '{{ vlans }}'
+      ios_config:
+        lines:
+          - vlan {{ item.vlan_id }}
+          - name {{ item.name }}
+
+    - name: Configure interfaces access
+      loop: "{{ interfaces }}"
+      ios_config:
+        lines:
+          - interface {{ item.name }}
+          - description {{ item.description }}
+          - switchport mode access
+          - switchport access vlan {{ item.access_vlan }}
+          - no shutdown
+      ignore_errors: yes
+
+    - name: Configure management IP
+      loop: '{{ management_ip}}'
+      ios_config:
+        lines:
+          - interface vlan {{ item.vlan_id }}
+          - ip address {{ item.ip_address }}
+          - no shutdown
+
+    - name: Configure switchport mode trunk
+      loop: '{{ mode_trunk }}'
+      ios_config:
+        lines:
+          - interface {{ item.name }}
+          - description {{ item.description }}
+          - switchport trunk encapsulation dot1q
+          - switchport mode trunk
+          - switchport trunk allowed vlan {{ allow_vlan }}
+          - no shutdown
+
+    - name: Save running config to startup config
+      ios_command:
+        commands: write memory

@@ -1,0 +1,53 @@
+# vars file for pfSense
+vlans:
+  - vlan_id: 10
+    interface: em1
+    descr: Serveur
+    ipv4_address: 10.10.50.1
+  - vlan_id: 20
+    interface: em1
+    descr: Administration
+    ipv4_address: 10.10.20.1
+  - vlan_id: 30
+    interface: em1
+    descr: Employes
+    ipv4_address: 10.10.30.1
+  - vlan_id: 40
+    interface: em1
+    descr: Management
+    ipv4_address: 10.10.40.1
+
+interfaces:
+  descr: VLAN
+  name: em1
+  enable: true
+  ipv4_type: static
+  ipv4_prefixlen: 24
+
+interface_groups:
+  - name: VLANS
+    members:
+      - VLAN10
+      - VLAN20
+      - VLAN30
+      - VLAN40
+    descr: All VLAN interfaces
+
+rules:
+  - name: "Allow LAN to WAN"
+    interface: LAN
+    action: pass
+    protocol: any
+    source: lan
+    destination: any
+    state: present
+
+gateways:
+  - name: WAN_GW
+    interface: wan
+    gateway: 192.168.1.254
+    state: present
+
+default_gateway:
+  gateway: WAN_GW
+  ipprotocol: inet

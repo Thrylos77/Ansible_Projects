@@ -1,0 +1,25 @@
+hostname: SW2
+
+mode_trunk:
+  - name: Eth0/1
+    description: Link to SW1
+
+allow_vlan: 1,10,20,30,40
+
+interfaces:
+  - name: Eth1/1
+    description: Link to Debian Server
+    access_vlan: 10
+  - name: Eth1/2
+    description: Link to CentOS Server
+    access_vlan: 10
+
+management_ip:
+  - vlan_id: 10
+    ip_address: 10.10.10.3 255.255.255.0
+  - vlan_id: 20
+    ip_address: 10.10.20.3 255.255.255.0
+  - vlan_id: 30
+    ip_address: 10.10.30.3 255.255.255.0
+  - vlan_id: 40
+    ip_address: 10.10.40.3 255.255.255.0

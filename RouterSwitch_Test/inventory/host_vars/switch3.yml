@@ -1,0 +1,38 @@
+hostname: SW3
+
+mode_trunk:
+  - name: Eth0/2
+    description: Link to SW1
+
+allow_vlan: 1,10,20,30,40
+
+interfaces:
+  - name: Eth1/0
+    description: Link to PC1
+    access_vlan: 20
+  - name: Eth1/1
+    description: Link to PC2
+    access_vlan: 20
+  - name: Eth2/0
+    description: Link to PC3
+    access_vlan: 30
+  - name: Eth2/1
+    description: Link to PC4
+    access_vlan: 30
+  - name: Eth3/0
+    description: Link to PC5
+    access_vlan: 40
+  - name: Eth3/1
+    description: Link to PC6
+    access_vlan: 40
+
+management_ip:
+  - vlan_id: 10
+    ip_address: 10.10.10.4 255.255.255.0
+  - vlan_id: 20
+    ip_address: 10.10.20.4 255.255.255.0
+  - vlan_id: 30
+    ip_address: 10.10.30.4 255.255.255.0
+  - vlan_id: 40
+    ip_address: 10.10.40.4 255.255.255.0
+
