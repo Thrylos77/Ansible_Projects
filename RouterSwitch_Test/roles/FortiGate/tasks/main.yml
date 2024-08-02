@@ -1,9 +1,10 @@
 ---
 # tasks file for FortiGate
 
+# GLOBAL CONFIGURATION
+
 - name: Configure global attributes on FortiGate
   fortinet.fortios.fortios_system_global:
-    vdom: "{{ vdom }}"
     system_global:
       hostname: "{{ global_config.hostname }}"
       admin_concurrent: 'enable'
@@ -17,33 +18,61 @@
       admin_lockout_duration: 30
       admin_lockout_threshold: 3
 
+
+# INTERFACE CONFIGURATION
+
+
 - name: Configure FortiGate VLANs on LAN interface
   fortinet.fortios.fortios_system_interface:
-    vdom: '{{ vdom }}'
     state: present
     system_interface:
-      name: VLAN.{{ item.id }}
-      vlanid: "{{ item.id }}"
-      alias: VLAN.{{item.id}}
+      name: 'VLAN{{ item.id }}'
+      vlanid: '{{ item.id }}'
+      alias: 'VLAN{{item.id}}'
       type: 'vlan'
       interface: "{{ interface_lan.name }}"
       ip: "{{ item.ip }}"
       allowaccess: '{{ item.allowaccess }}'
-      vdom: '{{ vlan_vdom }}'
+      role: '{{ item.role }}'
+      status: 'up'
+      vdom: 'root'
   loop: "{{ vlan_configs }}"
+
+- name: Configure FortiGate WAN interface
+  fortinet.fortios.fortios_system_interface:
+    state: present
+    system_interface:
+      name: '{{ interface_wan.name}}'
+      alias: '{{ interface_wan.alias }}'
+      mode: 'static'
+      ip: '{{ interface_wan.wan_ip }}'
+      allowaccess: '{{ interface_wan.allowaccess }}'
+      role: 'wan'
+      status: 'up'
+
+- name: Configure FortiGate LAN interface
+  fortinet.fortios.fortios_system_interface:
+    state: present
+    system_interface:
+      name: '{{ interface_lan.name }}'
+      alias: '{{ interface_lan.alias }}'
+      status: 'up'
+
+
+# SERVICE CONFIGURATION (DNS & DHCP)
+
 
 - name: Configure FortiGate DHCP
   fortinet.fortios.fortios_system_dhcp_server:
-    vdom: '{{ vdom }}'
     state: present
     system_dhcp_server:
-      interface: VLAN.{{ item.vlan }}
+      interface: VLAN{{ item.vlan }}
       auto_configuration: 'disable'
       auto_managed_status: 'disable'
       status: 'enable'
       timezone: '01'
-      dns_server2: '{{ dns_server2 }}'
-      dns_server3: '{{ dns_server3 }}'
+      dns_server1: '{{ dns_server1 }}'
+      dns_server2: '{{ dns_server2 }}.{{ item.vlan }}.1'
       dns_service: 'local'
       domain: '{{ domain }}'
       netmask: "{{ item.netmask }}"
@@ -57,34 +86,135 @@
           lease_time: '{{ item.lease_time }}'
   loop: "{{ dhcp_servers }}"
 
-- name: Configure FortiGate WAN interface
-  fortinet.fortios.fortios_system_interface:
-    vdom: '{{ vdom }}'
-    state: present
-    system_interface:
-      name: "{{ item.name}}"
-      alias: '{{ item.alias }}'
-      ip: '{{ item.wan_ip }}'
-      allowaccess: '{{ item.allowaccess }}'
-  loop: '{{ interface_wan }}'
 
-- name: Configure FortiGate LAN interface
-  fortinet.fortios.fortios_system_interface:
-    vdom: '{{ vdom }}'
-    state: present
-    system_interface:
-      name: '{{ interface_lan.name }}'
-      alias: '{{ interface_lan.alias }}'
+# STATIC ROUTES CONFIGURATION
+
 
 - name: Configure FortiGate static route
   fortinet.fortios.fortios_router_static:
-    vdom: '{{ vdom }}'
     state: present
     router_static:
       seq_num: '{{ item.seq_num }}'
-      dst: "{{ item.destination }}"
+      dst: "{{ item.dest }}"
       gateway: "{{ item.gateway }}"
       device: "{{ item.interface }}"
       comment: '{{ item.comment }}'
       status: 'enable'
   loop: "{{ static_routes }}"
+
+
+# FIREWALL ADDRESS CONFIGURATION FOR POLICY
+
+
+- name: Create WAN ADDRESS For Firewall Policy
+  fortios_firewall_address:
+    state: present
+    firewall_address:
+      name: '{{ interface_wan.wan_addr_name }}'
+      subnet: '{{ interface_wan.wan_ip }}'
+      interface: '{{ interface_wan.name }}'
+
+- name: Create VLANs ADDRESSES For firewall Policy
+  fortios_firewall_address:
+    state: present
+    firewall_address:
+      name: VLAN{{ item.id }}_ADDRESS
+      subnet: '{{ item.ip }}'
+      interface: VLAN{{ item.id }}
+  loop: '{{ vlan_configs }}'
+
+
+# FIREWAL POLICY
+
+
+- name: Configure Firewal Policy VLANs Access Internet
+  fortinet.fortios.fortios_firewall_policy:
+    state: present
+    firewall_policy:
+      policyid: '{{ item.id }}'
+      name: 'VLAN{{ item.id }} to INTERNET'
+      srcintf:
+        - name: 'VLAN{{ item.id }}'
+      dstintf:
+        - name: '{{ interface_wan.name }}'
+      action: '{{ vlan_to_internet.action }}'
+      srcaddr:
+        - name: 'VLAN{{ item.id }}_ADDRESS'
+      dstaddr:
+        - name: 'all'
+      schedule: '{{ vlan_to_internet.schedule }}'
+      service: '{{ vlan_to_internet.service }}'
+      nat: 'enable'
+  loop: '{{ vlans }}'
+  ignore_errors: true
+
+#  register: result
+
+# - debug:
+#     msg: '{{ result }}'
+
+
+##### FIREWALL POLICY FOR LAN
+
+- name: Configure Firewal Policy LAN to INTERNET
+  fortinet.fortios.fortios_firewall_policy:
+    state: present
+    firewall_policy:
+      policyid: 1
+      name: 'LAN to INTERNET'
+      srcintf:
+        - name: '{{ item.srcintf }}'
+      dstintf:
+        - name: '{{ item.dstintf_internet }}'
+      action: '{{ item.action }}'
+      srcaddr:
+        - name: 'all'
+      dstaddr:
+        - name: 'all'
+      schedule: '{{ item.schedule }}'
+      service: '{{ item.service }}'
+      nat: 'enable'
+  loop: '{{ lan_other }}'
+
+- name: Configure Firewal Policy LAN to VLAN SERVEUR
+  fortinet.fortios.fortios_firewall_policy:
+    state: present
+    firewall_policy:
+      policyid: '{{ item.id }}'
+      name: '{{ item.name }}'
+      srcintf:
+        - name: '{{ item.srcintf }}'
+      dstintf:
+        - name: VLAN{{ item.dst_id }}
+      action: '{{ item.action }}'
+      srcaddr:
+        - name: 'all'
+      dstaddr:
+        - name: VLAN{{ item.dst_id }}_ADDRESS
+      schedule: '{{ item.schedule }}'
+      service: '{{ item.service }}'
+      nat: 'enable'
+  loop: '{{ lan_other }}'
+
+#####
+
+
+- name: Configure Firewal Policy Inter-Vlan
+  fortinet.fortios.fortios_firewall_policy:
+    state: present
+    firewall_policy:
+      policyid: '{{ item.id }}'
+      name: '{{ item.name }}'
+      srcintf:
+        - name: VLAN{{ item.src_id }}
+      dstintf:
+        - name: VLAN{{ item.dst_id }}
+      action: '{{ item.action }}'
+      srcaddr:
+        - name: VLAN{{ item.src_id }}_ADDRESS
+      dstaddr:
+        - name: VLAN{{ item.dst_id }}_ADDRESS
+      schedule: '{{ item.schedule }}'
+      service: '{{ item.service }}'
+      nat: 'enable'
+  loop: '{{ intervlan_policy }}'

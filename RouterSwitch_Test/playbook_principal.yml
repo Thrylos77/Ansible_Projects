@@ -1,0 +1,8 @@
+# playbook_principal.yml
+---
+
+- name: Import switchs configuration playbook
+  ansible.builtin.import_playbook: playbook_switchs.yml
+
+- name: Import Fortigate configuration playbook
+  ansible.builtin.import_playbook: playbook_fortiG.yml

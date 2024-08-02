@@ -60,3 +60,23 @@
     - name: Save running config to startup config
       ios_command:
         commands: write memory
+
+    - name: Show configuration
+      ios_command:
+        commands:
+          - show startup-config
+          - show vlan
+          - show ip interface brief
+      register: command_output
+
+    - name: Display startup-config
+      debug:
+        msg: "{{ command_output.stdout[0] }}"
+
+    - name: Display VLAN configuration
+      debug:
+        msg: "{{ command_output.stdout[1] }}"
+
+    - name: Display IP interface brief
+      debug:
+        msg: "{{ command_output.stdout[2] }}"

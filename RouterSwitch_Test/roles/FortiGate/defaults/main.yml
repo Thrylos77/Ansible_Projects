@@ -4,21 +4,39 @@
 global_config:
   hostname: "FortiG-Firewall"
   timezone: 'GMT'
-  date_format: "yyyy/MM/dd"
-  language: "french"
+  date_format: "dd/MM/yyyy"
+  language: "english"
 
 interface_wan:
-  - name: 'port1'
-    alias: 'WAN'
-    wan_ip: '192.168.1.200/24'
-    wan_gw: 192.168.1.254
-    allowaccess: ['ping', 'https', 'http', 'ssh']
+  name: 'port1'
+  alias: 'WAN'
+  wan_ip: '192.168.1.101/24'
+  allowaccess: ['ping', 'https', 'http', 'ssh']
+  wan_addr_name: 'WAN_ADDRESS'              # For Firewall Policy config
 
 interface_lan:
-    name: 'port2'
-    alias: 'LAN'
+  name: 'port2'
+  alias: 'LAN'
+  ip: '10.10.2.1/24'
+  addr_name: 'LAN_ADDRESS'
+
+vlan_to_internet:
+  schedule: 'always'
+  action: 'accept'
+  service:
+    - { name: 'HTTPS' }
+    - { name: 'DNS' }
+    - { name: 'NTP' }
+    - { name: 'PING' }
+    - { name: 'HTTP' }
+
+vlans:
+  - id: 10
+  - id: 20
+  - id: 30
+  - id: 40
 
 domain: telmas.tg
-dns_server1: 10.10.10.1
-dns_server2: 8.8.8.8
-dns_server3: 8.8.4.4
+
+dns_server1: 8.8.8.8
+dns_server2: 10.10
