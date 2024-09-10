@@ -19,6 +19,7 @@
           - exit
           - service password-encryption
           - no ip domain-lookup
+      ignore_errors: yes
 
     - name: Configure VLANs
       loop: '{{ vlans }}'
@@ -26,6 +27,7 @@
         lines:
           - vlan {{ item.vlan_id }}
           - name {{ item.name }}
+      ignore_errors: yes
 
     - name: Configure interfaces access
       loop: "{{ interfaces }}"
@@ -45,6 +47,7 @@
           - interface vlan {{ item.vlan_id }}
           - ip address {{ item.ip_address }}
           - no shutdown
+      ignore_errors: yes
 
     - name: Configure switchport mode trunk
       loop: '{{ mode_trunk }}'
@@ -56,6 +59,7 @@
           - switchport mode trunk
           - switchport trunk allowed vlan {{ allow_vlan }}
           - no shutdown
+      ignore_errors: yes
 
     - name: Save running config to startup config
       ios_command:
@@ -69,14 +73,8 @@
           - show ip interface brief
       register: command_output
 
-    - name: Display startup-config
-      debug:
-        msg: "{{ command_output.stdout[0] }}"
+    - name: Save into Backup folder
+      copy:
+        content: "{{ command_output.stdout_lines | to_nice_json }}"
+        dest: '/Ansible_Projects/ARCHIVE/switches/{{inventory_hostname}}.txt'
 
-    - name: Display VLAN configuration
-      debug:
-        msg: "{{ command_output.stdout[1] }}"
-
-    - name: Display IP interface brief
-      debug:
-        msg: "{{ command_output.stdout[2] }}"

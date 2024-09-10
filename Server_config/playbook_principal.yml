@@ -1,0 +1,11 @@
+- name: 'Configure SGBD & APACHE2'
+  gather_facts: yes
+  hosts: debian_server
+  vars_files:
+    - './inventory/host_vars/.vault_pwd/{{ inventory_hostname }}.yml'
+  vars:
+    ansible_become_password: '{{ ansible_password }}'
+
+  roles:
+    - apache2
+    - mysql

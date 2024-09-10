@@ -4,7 +4,7 @@
 vlan_configs:
   - id: 10
     ip: 10.10.10.1/24
-    allowaccess: ['ping', 'https', 'ssh']
+    allowaccess: ['ping', 'https', 'ssh', 'http']
     role: 'lan'
   - id: 20
     ip: 10.10.20.1/24
@@ -54,7 +54,7 @@ dhcp_servers:
 
 static_routes:
   - dest: '0.0.0.0/0'
-    gateway: '192.168.1.254'
+    gateway: '192.168.31.248'
     interface: 'port1'
     comment: 'Connexion vers Internet'
     seq_num: 1

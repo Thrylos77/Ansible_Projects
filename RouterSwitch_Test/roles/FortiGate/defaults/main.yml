@@ -3,14 +3,14 @@
 
 global_config:
   hostname: "FortiG-Firewall"
-  timezone: 'GMT'
+  timezone: 1
   date_format: "dd/MM/yyyy"
   language: "english"
 
 interface_wan:
   name: 'port1'
   alias: 'WAN'
-  wan_ip: '192.168.1.101/24'
+  wan_ip: '192.168.31.101/24'
   allowaccess: ['ping', 'https', 'http', 'ssh']
   wan_addr_name: 'WAN_ADDRESS'              # For Firewall Policy config
 
@@ -39,4 +39,3 @@ vlans:
 domain: telmas.tg
 
 dns_server1: 8.8.8.8
-dns_server2: 10.10

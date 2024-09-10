@@ -1,4 +1,4 @@
-- name: Configure Firewall
+- name: 'Configure Firewall'
   gather_facts: yes
   hosts: fortiG
   vars_files:

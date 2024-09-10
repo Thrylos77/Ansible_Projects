@@ -18,9 +18,7 @@
       admin_lockout_duration: 30
       admin_lockout_threshold: 3
 
-
 # INTERFACE CONFIGURATION
-
 
 - name: Configure FortiGate VLANs on LAN interface
   fortinet.fortios.fortios_system_interface:
@@ -58,9 +56,7 @@
       alias: '{{ interface_lan.alias }}'
       status: 'up'
 
-
 # SERVICE CONFIGURATION (DNS & DHCP)
-
 
 - name: Configure FortiGate DHCP
   fortinet.fortios.fortios_system_dhcp_server:
@@ -72,7 +68,6 @@
       status: 'enable'
       timezone: '01'
       dns_server1: '{{ dns_server1 }}'
-      dns_server2: '{{ dns_server2 }}.{{ item.vlan }}.1'
       dns_service: 'local'
       domain: '{{ domain }}'
       netmask: "{{ item.netmask }}"
@@ -86,9 +81,7 @@
           lease_time: '{{ item.lease_time }}'
   loop: "{{ dhcp_servers }}"
 
-
 # STATIC ROUTES CONFIGURATION
-
 
 - name: Configure FortiGate static route
   fortinet.fortios.fortios_router_static:
@@ -102,9 +95,7 @@
       status: 'enable'
   loop: "{{ static_routes }}"
 
-
 # FIREWALL ADDRESS CONFIGURATION FOR POLICY
-
 
 - name: Create WAN ADDRESS For Firewall Policy
   fortios_firewall_address:
@@ -123,9 +114,7 @@
       interface: VLAN{{ item.id }}
   loop: '{{ vlan_configs }}'
 
-
 # FIREWAL POLICY
-
 
 - name: Configure Firewal Policy VLANs Access Internet
   fortinet.fortios.fortios_firewall_policy:

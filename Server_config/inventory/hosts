@@ -1,0 +1,5 @@
+[web_server]
+debian_server
+
+[db_server]
+debian_server
